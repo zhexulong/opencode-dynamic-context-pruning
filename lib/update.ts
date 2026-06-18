@@ -91,6 +91,13 @@ export async function updateRemoveDir(packageDir: string, name: string) {
     const spec = wrapperSpec(wrapperDir, name) ?? wrapperPkg?.dependencies?.[name]
     if (!spec || !isAutoUpdatableSpec(spec)) return undefined
 
+    // Safety: the wrapper dir's name must include the package name (e.g.
+    // "opencode-dcp@latest") so we don't delete arbitrary parent directories
+    // like .config/opencode when the package is installed outside the
+    // standard opencode cache layout.
+    const pkgName = name.split("/").pop() ?? name
+    if (!basename(wrapperDir).startsWith(`${pkgName}@`)) return undefined
+
     return wrapperDir
 }
 
